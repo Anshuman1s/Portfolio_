@@ -11,7 +11,7 @@ export function Hero() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="grid min-h-[calc(100svh-4rem)] items-center gap-14 py-14 sm:py-20 md:min-h-[calc(100svh-5rem)] md:grid-cols-[1.15fr_0.85fr] md:gap-10 lg:gap-20"
+      className="grid min-h-[calc(100svh-3.5rem)] items-center gap-14 py-14 sm:py-20 md:min-h-[calc(100svh-4rem)] md:grid-cols-[1.15fr_0.85fr] md:gap-10 lg:gap-20"
     >
       <div className="flex min-w-0 flex-col">
         <p className={`text-xs font-medium tracking-[0.25em] text-muted ${rise}`}>
