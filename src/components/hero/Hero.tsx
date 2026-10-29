@@ -6,7 +6,7 @@ import { HeroPortrait } from "./HeroPortrait";
 const rise = "motion-safe:animate-rise";
 
 export function Hero() {
-  const { firstName, lastName, role, intro } = heroConfig;
+  const { firstName, lastName, role, company, intro } = heroConfig;
 
   return (
     <section
@@ -33,7 +33,9 @@ export function Hero() {
           className={`mt-7 flex items-center gap-3 text-sm font-medium tracking-tight text-ink sm:text-base ${rise} [animation-delay:120ms]`}
         >
           <span aria-hidden="true" className="h-px w-8 bg-accent" />
-          {role}
+          <span>
+            {role} <mark className="rounded-[0.2em] bg-accent/60 box-decoration-clone px-[0.4em] py-[0.05em] text-ink">{company}</mark>
+          </span>
         </p>
 
         <p

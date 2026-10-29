@@ -27,7 +27,9 @@ export const isEmailConfigured = !siteConfig.email.startsWith("YOUR_EMAIL");
 export const heroConfig = {
   firstName: "Anshuman",
   lastName: "Shukla",
-  role: "Full Stack Developer",
+  role: "Full Stack Developer at",
+  /** Shown after the role with an accent highlighter behind it. */
+  company: "Open Gigantic",
   intro:
     "I build modern, responsive, and performant web applications with a focus on clean code, intuitive user experiences, and scalable solutions.",
   photo: {
