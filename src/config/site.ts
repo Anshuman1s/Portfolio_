@@ -47,7 +47,7 @@ export const navLinks: readonly NavLink[] = [
   { label: "Projects", href: "/#projects" },
 ];
 
-// TODO: Replace the LinkedIn placeholder below (email is set in siteConfig).
+// Email is set in siteConfig.
 export const socialLinks: readonly SocialLink[] = [
   {
     platform: "github",
@@ -57,7 +57,7 @@ export const socialLinks: readonly SocialLink[] = [
   {
     platform: "linkedin",
     label: "LinkedIn profile",
-    href: "https://www.linkedin.com/in/YOUR_USERNAME",
+    href: "https://www.linkedin.com/in/anshuman199/",
   },
   {
     platform: "email",
