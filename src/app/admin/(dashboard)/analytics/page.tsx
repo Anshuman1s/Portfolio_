@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { runRetention } from "@/app/admin/actions/analytics";
+import { flushVisits, runRetention } from "@/app/admin/actions/analytics";
 import { DailyBars, RankList, StatTile } from "@/components/admin/charts";
+import { ConfirmDelete } from "@/components/admin/ConfirmDelete";
 import { Notice } from "@/components/admin/Notice";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { SubmitButton } from "@/components/admin/SubmitButton";
@@ -31,7 +32,9 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
   const retentionNotice =
     params.notice === "retention"
       ? `Retention cleanup ran: ${Number(params.v) || 0} visits deleted, ${Number(params.i) || 0} IPs cleared, ${Number(params.l) || 0} locations deleted.`
-      : undefined;
+      : params.notice === "flushed"
+        ? `All visit records deleted (${Number(params.v) || 0}).`
+        : undefined;
 
   return (
     <>
@@ -117,6 +120,17 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
         <form action={runRetention} className="mt-4">
           <SubmitButton pendingLabel="Running…" className={buttonSecondary}>Run cleanup now</SubmitButton>
         </form>
+      </section>
+
+      <section className="mt-12 border-t border-ink/10 pt-8">
+        <h2 className="text-xs font-medium tracking-[0.2em] text-muted">FLUSH VISITS</h2>
+        <p className="mt-3 max-w-prose text-xs leading-relaxed text-muted">
+          Deletes every visit record across all dates, including consented locations attached to them.
+          Stats and charts start again from zero.
+        </p>
+        <div className="mt-4">
+          <ConfirmDelete action={flushVisits} itemLabel="all visit records" label="Flush all visits" />
+        </div>
       </section>
     </>
   );

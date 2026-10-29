@@ -18,6 +18,16 @@ export async function runRetention() {
   redirect(`/admin/analytics?${params}`);
 }
 
+/** Delete every visit record, plus any consented coordinates attached to them. */
+export async function flushVisits() {
+  await requireAdmin();
+  const [, visits] = await db.$transaction([
+    db.locationConsent.deleteMany({ where: { visitEventId: { not: null } } }),
+    db.visitEvent.deleteMany({}),
+  ]);
+  redirect(`/admin/analytics?notice=flushed&v=${visits.count}`);
+}
+
 /** Delete one visitor's consented coordinates (e.g. on a deletion request). */
 export async function deleteLocation(consentId: string, visitId: string) {
   await requireAdmin();

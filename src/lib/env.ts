@@ -19,6 +19,18 @@ const schema = z.object({
   NEXT_PUBLIC_PRECISE_LOCATION_ENABLED: boolString,
   /** Header to trust for the client IP when not on Vercel (e.g. "cf-connecting-ip"). */
   TRUSTED_IP_HEADER: z.string().optional(),
+  /** IANA timezone used to display times in the admin (servers run in UTC). */
+  ADMIN_TIMEZONE: z
+    .string()
+    .default("Asia/Kolkata")
+    .refine((zone) => {
+      try {
+        new Intl.DateTimeFormat("en-GB", { timeZone: zone });
+        return true;
+      } catch {
+        return false;
+      }
+    }, "ADMIN_TIMEZONE must be an IANA timezone such as Asia/Kolkata"),
 });
 
 export type Env = z.infer<typeof schema>;

@@ -8,13 +8,15 @@ type ConfirmDeleteProps = {
   /** Server action, already bound to the record id. */
   action: () => Promise<void>;
   itemLabel: string;
+  /** Text on the initial button. */
+  label?: string;
 };
 
 /**
  * Two-step delete: the first click only reveals an explicit confirmation,
  * so a record can't be removed by a single accidental click.
  */
-export function ConfirmDelete({ action, itemLabel }: ConfirmDeleteProps) {
+export function ConfirmDelete({ action, itemLabel, label = "Delete" }: ConfirmDeleteProps) {
   const [confirming, setConfirming] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -30,7 +32,7 @@ export function ConfirmDelete({ action, itemLabel }: ConfirmDeleteProps) {
         className="focus-ring inline-flex h-10 items-center gap-2 rounded-full border border-accent-hover/40 px-5 text-xs font-medium text-accent-hover transition-colors hover:bg-accent/10"
       >
         <Trash2 size={14} aria-hidden />
-        Delete
+        {label}
       </button>
     );
   }

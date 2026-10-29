@@ -1,6 +1,7 @@
 import { MapPin } from "lucide-react";
 import Link from "next/link";
 import type { listVisits } from "@/lib/analytics/queries";
+import { env } from "@/lib/env";
 import { panelClass } from "./styles";
 
 type Row = Awaited<ReturnType<typeof listVisits>>["rows"][number];
@@ -13,7 +14,16 @@ export function maskIp(ip: string | null) {
 }
 
 export const formatTime = (date: Date) =>
-  date.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC";
+  date.toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: env().ADMIN_TIMEZONE,
+    timeZoneName: "short",
+  });
 
 export function approxPlace(row: { city: string | null; region: string | null; country: string | null }) {
   const parts = [row.city, row.region, row.country].filter(Boolean);
