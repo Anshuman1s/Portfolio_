@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import type { ProjectFormState } from "@/app/admin/actions/projects";
 import { Field } from "./Field";
+import { ImageUpload } from "./ImageUpload";
 import { SubmitButton } from "./SubmitButton";
 import { buttonSecondary, inputClass } from "./styles";
 
@@ -108,9 +109,9 @@ export function ProjectForm({ action, initial, submitLabel }: ProjectFormProps) 
           id="imageUrl"
           label="Screenshot"
           error={errors.imageUrl}
-          hint="A file in public/, e.g. /images/projects/app.png, or an https:// image URL."
+          hint="PNG or JPG from your device, up to 4 MB."
         >
-          {text("imageUrl", { maxLength: 500, placeholder: "/images/projects/app.png" })}
+          <ImageUpload id="imageUrl" initialUrl={initial?.imageUrl ?? null} invalid={Boolean(errors.imageUrl)} />
         </Field>
         <Field id="imageAlt" label="Screenshot alt text" error={errors.imageAlt} hint="Describe what the screenshot shows.">
           {text("imageAlt", { maxLength: 200 })}

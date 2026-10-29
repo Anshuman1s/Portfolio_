@@ -7,6 +7,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { requireAdmin } from "@/lib/auth/guard";
 import { PROJECTS_TAG } from "@/lib/content";
 import { db } from "@/lib/db";
+import { MAX_IMAGE_BYTES, detectImageType, uploadedImageId, uploadedImagePath } from "@/lib/project-images";
 import { fieldErrors, projectSchema, slugify } from "@/lib/validation";
 
 export type ProjectFormState = { errors?: Record<string, string> };
@@ -35,6 +36,31 @@ function parseProject(formData: FormData) {
 const isUniqueViolation = (error: unknown) =>
   error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 
+/**
+ * Stores the screenshot chosen in the form, if any. Returns its URL, or an
+ * error message when the file isn't a PNG / JPG within the size limit.
+ */
+async function saveUploadedImage(value: FormDataEntryValue | null) {
+  if (!(value instanceof File) || value.size === 0) return { url: null };
+  if (value.size > MAX_IMAGE_BYTES) return { error: "Screenshot must be 4 MB or smaller" };
+
+  const data = new Uint8Array(await value.arrayBuffer());
+  const mimeType = detectImageType(data);
+  if (!mimeType) return { error: "Only PNG or JPG images are allowed" };
+
+  const image = await db.projectImage.create({
+    data: { mimeType, size: data.byteLength, data },
+    select: { id: true },
+  });
+  return { url: uploadedImagePath(image.id, mimeType) };
+}
+
+/** Deletes an uploaded screenshot once nothing points at it; other sources are left alone. */
+async function deleteUploadedImage(url: string | null | undefined) {
+  const id = uploadedImageId(url);
+  if (id) await db.projectImage.deleteMany({ where: { id } });
+}
+
 export async function createProject(
   _prev: ProjectFormState,
   formData: FormData,
@@ -43,11 +69,16 @@ export async function createProject(
   const parsed = parseProject(formData);
   if (!parsed.success) return { errors: fieldErrors(parsed.error) };
 
+  const upload = await saveUploadedImage(formData.get("imageFile"));
+  if (upload.error) return { errors: { imageUrl: upload.error } };
+  const imageUrl = upload.url ?? parsed.data.imageUrl;
+
   try {
     await db.project.create({
-      data: { ...parsed.data, publishedAt: parsed.data.published ? new Date() : null },
+      data: { ...parsed.data, imageUrl, publishedAt: parsed.data.published ? new Date() : null },
     });
   } catch (error) {
+    await deleteUploadedImage(upload.url);
     if (isUniqueViolation(error)) return { errors: { slug: "That slug is already in use" } };
     throw error;
   }
@@ -68,23 +99,32 @@ export async function updateProject(
 
   const existing = await db.project.findUnique({
     where: { id: projectId },
-    select: { publishedAt: true },
+    select: { publishedAt: true, imageUrl: true },
   });
   if (!existing) return { errors: { form: "This project no longer exists" } };
+
+  const upload = await saveUploadedImage(formData.get("imageFile"));
+  if (upload.error) return { errors: { imageUrl: upload.error } };
+  const imageUrl = upload.url ?? parsed.data.imageUrl;
 
   try {
     await db.project.update({
       where: { id: projectId },
       data: {
         ...parsed.data,
+        imageUrl,
         // First publish stamps the date used for "latest" ordering.
         publishedAt: parsed.data.published ? (existing.publishedAt ?? new Date()) : existing.publishedAt,
       },
     });
   } catch (error) {
+    await deleteUploadedImage(upload.url);
     if (isUniqueViolation(error)) return { errors: { slug: "That slug is already in use" } };
     throw error;
   }
+
+  // The previous screenshot was replaced or removed.
+  if (existing.imageUrl !== imageUrl) await deleteUploadedImage(existing.imageUrl);
 
   updateTag(PROJECTS_TAG);
   redirect("/admin/projects?notice=updated");
@@ -92,7 +132,11 @@ export async function updateProject(
 
 export async function deleteProject(id: string) {
   await requireAdmin();
-  await db.project.delete({ where: { id: idSchema.parse(id) } });
+  const project = await db.project.delete({
+    where: { id: idSchema.parse(id) },
+    select: { imageUrl: true },
+  });
+  await deleteUploadedImage(project.imageUrl);
   updateTag(PROJECTS_TAG);
   redirect("/admin/projects?notice=deleted");
 }

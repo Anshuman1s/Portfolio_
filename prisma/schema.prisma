@@ -57,7 +57,7 @@ model Project {
   slug            String    @unique
   description     String
   longDescription String?
-  /// Site path ("/images/projects/x.png") or https URL.
+  /// Site path ("/images/projects/x.png", "/project-images/<id>.png") or https URL.
   imageUrl        String?
   imageAlt        String?
   technologies    String[]
@@ -72,6 +72,17 @@ model Project {
   updatedAt       DateTime  @updatedAt
 
   @@index([published, featured, sortOrder, publishedAt])
+}
+
+/// Screenshot uploaded from the admin, served at /project-images/<id>.<ext>.
+/// Stored in the database because the hosting filesystem is read-only.
+model ProjectImage {
+  id        String   @id @default(cuid())
+  /// "image/png" or "image/jpeg", checked against the file's magic bytes.
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now())
 }
 
 enum SkillSize {

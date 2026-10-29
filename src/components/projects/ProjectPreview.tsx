@@ -1,6 +1,7 @@
 import { ImageIcon } from "lucide-react";
 import Image from "next/image";
 import type { PublicProject } from "@/lib/content";
+import { uploadedImageId } from "@/lib/project-images";
 import { publicAssetExists } from "@/lib/publicAsset";
 
 type ProjectPreviewProps = {
@@ -9,7 +10,7 @@ type ProjectPreviewProps = {
 };
 
 const imageAvailable = (src: string) =>
-  src.startsWith("https://") || publicAssetExists(src);
+  src.startsWith("https://") || uploadedImageId(src) !== null || publicAssetExists(src);
 
 export function ProjectPreview({ project, sizes }: ProjectPreviewProps) {
   const { imageUrl, imageAlt, title } = project;
