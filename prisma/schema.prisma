@@ -1,0 +1,143 @@
+// Portfolio database schema.
+// Apply changes with `npm run db:migrate` (dev) or `npm run db:deploy` (prod).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Admin auth ──────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  /// Argon2id hash. Plaintext passwords are never stored.
+  passwordHash       String
+  /// True for the bootstrap credential; the dashboard forces a change.
+  mustChangePassword Boolean   @default(true)
+  passwordChangedAt  DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  sessions           Session[]
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  /// SHA-256 of the random cookie token — the raw token is never stored.
+  tokenHash String    @unique
+  userId    String
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Login attempts for rate limiting. `key` is an HMAC of the IP or email.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  key       String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+  @@index([createdAt])
+}
+
+// ─── Portfolio content ───────────────────────────────────────────────────────
+
+model Project {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  description     String
+  longDescription String?
+  /// Site path ("/images/projects/x.png") or https URL.
+  imageUrl        String?
+  imageAlt        String?
+  technologies    String[]
+  githubUrl       String?
+  liveUrl         String?
+  published       Boolean   @default(false)
+  featured        Boolean   @default(false)
+  /// Lower comes first (after featured projects).
+  sortOrder       Int       @default(0)
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([published, featured, sortOrder, publishedAt])
+}
+
+enum SkillSize {
+  sm
+  md
+  lg
+}
+
+model Skill {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  /// Key into the allowlisted icon registry (src/lib/skill-icons.tsx).
+  icon      String
+  category  String?
+  /// Hex colour shown on hover / focus.
+  color     String
+  /// Position in the constellation, percent (0–100).
+  x         Float
+  y         Float
+  size      SkillSize @default(md)
+  sortOrder Int       @default(0)
+  published Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([published, sortOrder])
+}
+
+// ─── Analytics ───────────────────────────────────────────────────────────────
+
+model VisitEvent {
+  id           String           @id @default(cuid())
+  createdAt    DateTime         @default(now())
+  path         String
+  /// Hostname only, never the full referring URL.
+  referrerHost String?
+  /// HMAC(secret, day + IP + user agent). Rotates daily; not reversible.
+  visitorHash  String
+  /// Stored per ANALYTICS_IP_MODE and cleared after ANALYTICS_IP_RETENTION_DAYS.
+  ipAddress    String?
+  device       String?
+  browser      String?
+  /// Approximate, IP-derived (hosting platform headers). Not a precise location.
+  country      String?
+  region       String?
+  city         String?
+  location     LocationConsent?
+
+  @@index([createdAt])
+  @@index([path, createdAt])
+  @@index([visitorHash, path, createdAt])
+}
+
+/// Created only after a visitor explicitly opts in to share their location.
+model LocationConsent {
+  id                String      @id @default(cuid())
+  visitEventId      String?     @unique
+  visitEvent        VisitEvent? @relation(fields: [visitEventId], references: [id], onDelete: SetNull)
+  /// Rounded to ~1 km before storage.
+  latitude          Float
+  longitude         Float
+  accuracyMeters    Float?
+  /// SHA-256 of a random token kept by the visitor, used to withdraw / delete.
+  deletionTokenHash String      @unique
+  consentedAt       DateTime    @default(now())
+
+  @@index([consentedAt])
+}

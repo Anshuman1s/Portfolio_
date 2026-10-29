@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
+/* Palette — adjust here and every component follows. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cream: #fff7f0;
+  --ink: #482033;
+  --muted: #755c68;
+  --accent: #f34d92;
+  --accent-hover: #e83e87;
+  --ink-hover: #5e2b43;
+  --blush: #f9e4e6;
+  --blush-deep: #f3d6db;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-ink-hover: var(--ink-hover);
+  --color-blush: var(--blush);
+  --color-blush-deep: var(--blush-deep);
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  --animate-float: float var(--float-duration, 8s) ease-in-out
+    var(--float-delay, 0s) infinite;
+  --animate-twinkle: twinkle 3.2s ease-in-out infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(var(--float-x, 0), var(--float-y, -6px));
+    }
+  }
+
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.25;
+    }
+  }
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-logo: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@utility focus-ring {
+  outline: none;
+  &:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Keep anchored sections clear of the sticky header. */
+  scroll-padding-top: 5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-mono);
 }

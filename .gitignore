@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+# Keep the documented template
+!.env.example
+
+# Never commit database dumps or exports
+*.sql.gz
+*.dump
