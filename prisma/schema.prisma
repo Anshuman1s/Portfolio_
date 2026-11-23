@@ -130,6 +130,9 @@ model VisitEvent {
   country      String?
   region       String?
   city         String?
+  /// Approximate, IP-derived city-level coordinates (rounded to ~1 km). Not GPS.
+  latitude     Float?
+  longitude    Float?
   location     LocationConsent?
 
   @@index([createdAt])

@@ -144,7 +144,9 @@ export async function listVisits(filters: AnalyticsFilters) {
         country: true,
         region: true,
         city: true,
-        // Only whether precise location exists — coordinates stay on the detail page.
+        latitude: true,
+        longitude: true,
+        // Only whether precise location exists — consented coordinates stay on the detail page.
         location: { select: { id: true } },
       },
     }),

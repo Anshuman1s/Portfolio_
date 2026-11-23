@@ -6,7 +6,8 @@ import { ConfirmDelete } from "@/components/admin/ConfirmDelete";
 import { Notice } from "@/components/admin/Notice";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { buttonSecondary, panelClass } from "@/components/admin/styles";
-import { approxPlace, formatTime } from "@/components/admin/VisitsTable";
+import { LocationMap } from "@/components/admin/LocationMap";
+import { approxPlace, formatCoords, formatTime } from "@/components/admin/VisitsTable";
 import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
 
@@ -21,6 +22,21 @@ export default async function VisitDetailPage({ params, searchParams }: PageProp
   const visit = await db.visitEvent.findUnique({ where: { id }, include: { location: true } });
   if (!visit) notFound();
 
+  // Prefer coordinates the visitor shared; fall back to the IP-based estimate.
+  const mapPoint = visit.location
+    ? {
+        latitude: visit.location.latitude,
+        longitude: visit.location.longitude,
+        label: "Visitor-shared location (rounded to ~1 km)",
+      }
+    : visit.latitude !== null && visit.longitude !== null
+      ? {
+          latitude: visit.latitude,
+          longitude: visit.longitude,
+          label: `Approximate, IP-based — ${approxPlace(visit)}. Can be off by several km.`,
+        }
+      : null;
+
   const rows: [string, string][] = [
     ["Time", formatTime(visit.createdAt)],
     ["Page", visit.path],
@@ -28,6 +44,7 @@ export default async function VisitDetailPage({ params, searchParams }: PageProp
     ["Visitor id (daily, anonymous)", visit.visitorHash],
     ["Stored IP", visit.ipAddress ?? "Not stored (cleared by retention, or IP mode is none)"],
     ["Approx. location (IP-based)", approxPlace(visit)],
+    ["Approx. lat, long (IP-based)", formatCoords(visit.latitude, visit.longitude)],
     ["Device", visit.device ?? "—"],
     ["Browser", visit.browser ?? "—"],
   ];
@@ -48,6 +65,20 @@ export default async function VisitDetailPage({ params, searchParams }: PageProp
           </div>
         ))}
       </dl>
+
+      <section className="mt-8">
+        <h2 className="text-xs font-medium tracking-[0.2em] text-muted">MAP</h2>
+        <div className={`${panelClass} mt-4 p-4`}>
+          {mapPoint ? (
+            <LocationMap latitude={mapPoint.latitude} longitude={mapPoint.longitude} label={mapPoint.label} />
+          ) : (
+            <p className="px-1 py-6 text-center text-xs text-muted">
+              No coordinates for this visit. IP-based coordinates come from Vercel&apos;s geolocation
+              headers, so they&apos;re only recorded in production on Vercel (not in local dev).
+            </p>
+          )}
+        </div>
+      </section>
 
       <section className="mt-8">
         <h2 className="text-xs font-medium tracking-[0.2em] text-muted">CONSENTED LOCATION</h2>

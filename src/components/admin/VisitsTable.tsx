@@ -30,6 +30,11 @@ export function approxPlace(row: { city: string | null; region: string | null; c
   return parts.length ? parts.join(", ") : "—";
 }
 
+export function formatCoords(latitude: number | null, longitude: number | null) {
+  if (latitude === null || longitude === null) return "—";
+  return `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+}
+
 export function VisitsTable({ rows, empty }: { rows: Row[]; empty: string }) {
   if (rows.length === 0) {
     return <p className={`${panelClass} px-6 py-10 text-center text-xs text-muted`}>{empty}</p>;
@@ -37,7 +42,7 @@ export function VisitsTable({ rows, empty }: { rows: Row[]; empty: string }) {
 
   return (
     <div className={`${panelClass} overflow-x-auto`}>
-      <table className="w-full min-w-[860px] text-left text-[11px]">
+      <table className="w-full min-w-[960px] text-left text-[11px]">
         <caption className="sr-only">Visit records, newest first</caption>
         <thead className="border-b border-ink/10 text-[10px] tracking-wide text-muted">
           <tr>
@@ -47,6 +52,7 @@ export function VisitsTable({ rows, empty }: { rows: Row[]; empty: string }) {
             <th scope="col" className="px-4 py-3 font-medium">Visitor</th>
             <th scope="col" className="px-4 py-3 font-medium">IP (masked)</th>
             <th scope="col" className="px-4 py-3 font-medium">Approx. location</th>
+            <th scope="col" className="px-4 py-3 font-medium">Lat, Long</th>
             <th scope="col" className="px-4 py-3 font-medium">Device</th>
             <th scope="col" className="px-4 py-3 font-medium"><span className="sr-only">Details</span></th>
           </tr>
@@ -60,6 +66,7 @@ export function VisitsTable({ rows, empty }: { rows: Row[]; empty: string }) {
               <td className="px-4 py-2.5 font-mono text-muted">{row.visitorHash.slice(0, 8)}</td>
               <td className="px-4 py-2.5 font-mono text-muted">{maskIp(row.ipAddress)}</td>
               <td className="px-4 py-2.5 text-muted">{approxPlace(row)}</td>
+              <td className="px-4 py-2.5 font-mono whitespace-nowrap text-muted">{formatCoords(row.latitude, row.longitude)}</td>
               <td className="px-4 py-2.5 text-muted">{[row.device, row.browser].filter(Boolean).join(" · ") || "—"}</td>
               <td className="px-4 py-2.5 text-right">
                 <Link href={`/admin/analytics/visits/${row.id}`} className="focus-ring inline-flex items-center gap-1 rounded-sm text-ink underline decoration-ink/20 underline-offset-4 hover:decoration-accent">

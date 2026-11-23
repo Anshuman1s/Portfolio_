@@ -30,9 +30,22 @@ export function truncateIp(ip: string): string {
   return `${groups.join(":")}::`;
 }
 
-/** Approximate location from Vercel's IP geolocation headers (country/region/city). */
+/** Parses a coordinate header and rounds it to 2 decimals (~1 km). */
+function coordinate(value: string | null, limit: number) {
+  if (!value) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || Math.abs(parsed) > limit) return null;
+  return Math.round(parsed * 100) / 100;
+}
+
+/**
+ * Approximate location from Vercel's IP geolocation headers: country, region,
+ * city and city-level coordinates. Not available outside Vercel (e.g. local dev).
+ */
 export function getApproxGeo(headers: HeaderSource) {
-  if (process.env.VERCEL !== "1") return { country: null, region: null, city: null };
+  if (process.env.VERCEL !== "1") {
+    return { country: null, region: null, city: null, latitude: null, longitude: null };
+  }
   const decode = (value: string | null) => {
     if (!value) return null;
     try {
@@ -45,6 +58,8 @@ export function getApproxGeo(headers: HeaderSource) {
     country: decode(headers.get("x-vercel-ip-country")),
     region: decode(headers.get("x-vercel-ip-country-region")),
     city: decode(headers.get("x-vercel-ip-city")),
+    latitude: coordinate(headers.get("x-vercel-ip-latitude"), 90),
+    longitude: coordinate(headers.get("x-vercel-ip-longitude"), 180),
   };
 }
 

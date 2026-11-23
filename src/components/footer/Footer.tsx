@@ -127,6 +127,18 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Analytics & location notice */}
+        <p className="border-t border-ink/10 py-5 text-[11px] leading-relaxed text-muted">
+          This site records anonymous visit statistics, including an approximate location
+          (city and rough coordinates) estimated from your IP address. No cookies, no ad trackers,
+          and no GPS access unless you choose to share it. By continuing to browse you consent to
+          this — you can opt out any time on the{" "}
+          <Link href="/privacy" className={underlineLink}>
+            privacy page
+          </Link>
+          .
+        </p>
+
         {/* Copyright */}
         <div className="flex flex-col gap-2 border-t border-ink/10 py-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>

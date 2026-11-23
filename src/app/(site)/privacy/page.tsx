@@ -38,7 +38,7 @@ export default function PrivacyPage() {
         <li>The page path you viewed and the time.</li>
         <li>The referring website&apos;s domain (not the full address), if your browser sends one.</li>
         <li>A device category (desktop / mobile / tablet) and browser family.</li>
-        <li>An approximate country / region / city derived from your IP address by the hosting provider. This is a rough estimate, not your precise location.</li>
+        <li>An approximate country / region / city, and city-level latitude / longitude, derived from your IP address by the hosting provider. This is a rough estimate (often off by several kilometres), not your precise location, and your browser is never asked for GPS unless you opt in below.</li>
         <li>
           An anonymous visitor id: a keyed hash of the date, your IP address and browser user
           agent. It changes every day and can&apos;t be turned back into an IP address. It is used
