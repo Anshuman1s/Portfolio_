@@ -25,6 +25,8 @@ Re-running the seed never resets an existing admin's password.
 1. Create a hosted PostgreSQL database and copy its connection string.
 2. In Vercel → Project → Settings → Environment Variables, add every variable
    from `.env.example` (production values; leave `DATABASE_POOL_MAX` unset).
+   If `DATABASE_URL` is a pooled URL (Neon's `-pooler` host), also set
+   `DIRECT_URL` to the non-pooled one — migrations fail with P1002 through a pooler.
 3. `vercel.json` sets the build command to `npm run db:deploy && npm run build`,
    so migrations run before each build, and schedules `/api/cron/retention` daily.
 4. After the first deploy, seed once from your machine against the production DB:
